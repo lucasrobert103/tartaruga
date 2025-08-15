@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>O Site Mais Lento™</title>
+  <!-- AVISO: este arquivo foi feito para ser LENTO DE PROPÓSITO. Abra em uma aba isolada. -->
+  <style>
+    /* 1) CSS que atrapalha a performance de propósito */
+    :root{ --n: 1; }
+    /* Muitos @keyframes inúteis */
+    @keyframes w { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+    @keyframes b { 0%{filter:blur(0)} 50%{filter:blur(4px)} 100%{filter:blur(0)} }
+    @keyframes s { 0%{text-shadow:0 0 0 #000} 100%{text-shadow:0 0 60px #000} }
+
+    /* Força o browser a considerar mudanças de layout o tempo todo */
+    * { will-change: transform, width, height, left, top, filter, opacity; }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin:0; background:#111; color:#eee;
+      animation: b 6s infinite linear;
+    }
+
+    header { position:sticky; top:0; z-index:9999; backdrop-filter: blur(20px) saturate(200%);
+      box-shadow: 0 0 80px rgba(0,0,0,.8), inset 0 0 100px rgba(255,255,255,.06);
+    }
+
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+    h1 { margin:0; font-size: clamp(28px, 4vw, 56px); letter-spacing: .02em; }
+
+    .controls { display:grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin-top:16px; }
+
+    .card {
+      background: linear-gradient(125deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 18px; padding: 16px; box-shadow: 0 14px 60px rgba(0,0,0,.6);
+      animation: s 5s alternate infinite ease-in-out;
+    }
+
+    .btn { cursor: pointer; padding: 12px 16px; border-radius: 12px; border:1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.06); color:#fff; font-weight: 700; letter-spacing:.02em;
+      box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
+    .btn:active { transform: scale(.98); }
+
+    .meter { height: 10px; background: rgba(255,255,255,.08); border-radius: 999px; overflow:hidden; margin-top:8px; }
+    .bar { height: 100%; width: 0%; background: linear-gradient(90deg, #f90, #f03); }
+
+    /* 2) Listas com sombras custosas */
+    .list { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap:14px; margin-top:22px; }
+    .item { height:96px; border-radius: 16px; background: rgba(255,255,255,.04);
+      box-shadow: 0 0 30px rgba(255,255,255,.15), inset 0 0 50px rgba(0,0,0,.6);
+      display:flex; align-items:center; justify-content:center; font-size:14px;
+      animation: w 20s linear infinite;
+    }
+
+    /* 3) Imagem base64 gigante com filtros */
+    .hero {
+      height: 40vh;
+      background-size: cover; background-position: center;
+      filter: contrast(150%) saturate(180%) hue-rotate(90deg) blur(1px) drop-shadow(0 0 80px #000);
+    }
+
+    /* 4) Elemento para thrashing de layout */
+    #thrash { position:relative; width:50vw; height:50px; background: #222; margin: 24px 0; }
+    #thrash::after { content:""; position:absolute; left:0; top:0; right:0; bottom:0;
+      box-shadow: 0 0 120px rgba(255,255,255,.25) inset; border-radius: 8px; }
+
+    footer { opacity:.7; text-align:center; padding:40px 0; }
+
+    /* Import redundante de fontes via data URI -> custo de parse */
+    @font-face {
+      font-family: 'Wasteful';
+      src: url(data:font/ttf;base64,AAEAAAALAIAAAwAwT1MvMgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==) format('truetype');
+    }
+    .wasteful { font-family: 'Wasteful', system-ui; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>⚠️ O Site Mais Lento™</h1>
+      <p class="wasteful">Este site é uma coleção de <em>anti‑padrões</em> de performance. Use por sua conta e risco.</p>
+      <div class="controls">
+        <div class="card">
+          <h3>🔥 Travar o main thread</h3>
+          <p>Executa loops pesados (Fibonacci, primos, busy-wait).</p>
+          <label>Segundos de trava inicial: <input id="blockSeconds" type="number" min="0" max="30" value="3"></label>
+          <div class="meter"><div id="blockBar" class="bar"></div></div>
+          <button class="btn" id="btnBlock">Travar agora</button>
+        </div>
+        <div class="card">
+          <h3>🧱 Inchar o DOM</h3>
+          <p>Cria milhares de elementos com sombras e animação.</p>
+          <label>Quantidade: <input id="domCount" type="number" min="0" max="200000" value="30000"></label>
+          <div class="meter"><div id="domBar" class="bar"></div></div>
+          <button class="btn" id="btnDom">Criar elementos</button>
+        </div>
+        <div class="card">
+          <h3>🔁 Layout Thrashing</h3>
+          <p>Força reflow/repaint alternando estilos e lendo medidas.</p>
+          <label>Operações por clique: <input id="thrashOps" type="number" min="1" max="200000" value="40000"></label>
+          <div class="meter"><div id="thrashBar" class="bar"></div></div>
+          <button class="btn" id="btnThrash">Thrash!</button>
+        </div>
+        <div class="card">
+          <h3>🧠 Vazamento de Memória</h3>
+          <p>Acumula dados no escopo global e no localStorage.</p>
+          <label>MB por clique: <input id="leakMB" type="number" min="1" max="1024" value="64"></label>
+          <div class="meter"><div id="leakBar" class="bar"></div></div>
+          <button class="btn" id="btnLeak">Vazar memória</button>
+        </div>
+        <div class="card">
+          <h3>📜 Histórico & Logs</h3>
+          <p>Empilha entries no History API e entope o console.</p>
+          <label>Entradas: <input id="hist" type="number" min="0" max="20000" value="5000"></label>
+          <div class="meter"><div id="histBar" class="bar"></div></div>
+          <button class="btn" id="btnHistory">Poluir histórico</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero" id="hero"></div>
+
+  <main class="wrap">
+    <div id="thrash"></div>
+    <div class="list" id="list"></div>
+  </main>
+
+  <footer>
+    <small>Para interromper os testes, recarregue a aba. Este projeto é educacional: demonstra o que <u>não</u> fazer.</small>
+  </footer>
+
+  <script>
+    // 0) Grande imagem base64 para custar decodificação & pintura
+    (function setGiantImage(){
+      const big =
+        'data:image/jpeg;base64,' + '/* imagem pequena repetida muitas vezes para inflar tamanho */'.repeat(15000)
+          .split('').map(c=>btoa(c)).join('');
+      requestIdleCallback?.(()=>{ document.getElementById('hero').style.backgroundImage = `url(${big})`; });
+    })();
+
+    // Utilitário de barra de progresso tosca
+    function animateBar(el, pct){ el.style.width = Math.min(100, pct) + '%'; }
+
+    // 1) Trava de main thread (busy-wait + CPU-bound)
+    function busyWait(ms){ const start = performance.now();
+      while(performance.now() - start < ms){ /* ocupa CPU */ }
+    }
+    function fib(n){ return n<=1?n:fib(n-1)+fib(n-2); }
+    function burnCpu(seconds, bar){
+      const total = seconds*1000; const chunk = 250; let elapsed = 0;
+      // Alterna recursão ineficiente e busy-wait para maximizar o sofrimento
+      while(elapsed < total){ fib(37); busyWait(chunk); elapsed += chunk; animateBar(bar, 100*elapsed/total); }
+    }
+
+    // 2) Inchaço de DOM com estilos caros
+    function createHeavyNodes(count, listEl, bar){
+      const frag = document.createDocumentFragment();
+      const step = Math.max(1, Math.floor(count/200));
+      for(let i=1;i<=count;i++){
+        const d = document.createElement('div'); d.className='item'; d.textContent = `#${i}`; frag.appendChild(d);
+        if(i % step === 0){ animateBar(bar, 100*i/count); }
+      }
+      listEl.appendChild(frag);
+    }
+
+    // 3) Layout thrashing: escreve e lê layout alternadamente
+    function doThrash(ops, target, bar){
+      let w = target.clientWidth;
+      for(let i=1;i<=ops;i++){
+        target.style.width = ((w + (i%300)) % window.innerWidth) + 'px';
+        // força reflow
+        void target.offsetWidth;
+        target.style.height = ((50 + (i%120))) + 'px';
+        void target.offsetHeight;
+        if(i % Math.max(1, Math.floor(ops/200)) === 0){ animateBar(bar, 100*i/ops); }
+      }
+    }
+
+    // 4) Vazamento de memória e pressão no GC
+    const globalLeaks = [];
+    function leakMemory(megabytes, bar){
+      const size = megabytes * 1024 * 1024;
+      const chunk = new ArrayBuffer(size);
+      // Guarda referências para impedir GC
+      globalLeaks.push(chunk);
+      // Polui localStorage com strings gigantes
+      try{
+        const s = 'x'.repeat(1024*1024);
+        for(let i=0;i<megabytes;i++) localStorage.setItem('leak_'+(globalLeaks.length)+'_'+i, s);
+      }catch(e){ /* ignorar quota exceeded */ }
+      animateBar(bar, Math.min(100, globalLeaks.length % 100));
+    }
+
+    // 5) Poluir o histórico e entupir o console
+    function polluteHistory(entries, bar){
+      for(let i=1;i<=entries;i++){
+        history.pushState({i}, '', '#'+i);
+        console.log('log pesado', i, new Array(1000).fill('•').join(''));
+        if(i % Math.max(1, Math.floor(entries/200)) === 0){ animateBar(bar, 100*i/entries); }
+      }
+    }
+
+    // Hooks UI
+    const $ = (id)=>document.getElementById(id);
+    $('btnBlock').onclick = ()=>{
+      const s = Math.max(0, Math.min(30, +$('blockSeconds').value||0));
+      burnCpu(s, $('blockBar'));
+    };
+    $('btnDom').onclick = ()=>{
+      createHeavyNodes(Math.max(0, +$('domCount').value||0), $('list'), $('domBar'));
+    };
+    $('btnThrash').onclick = ()=>{
+      doThrash(Math.max(1, +$('thrashOps').value||1), $('thrash'), $('thrashBar'));
+    };
+    $('btnLeak').onclick = ()=>{
+      leakMemory(Math.max(1, +$('leakMB').value||1), $('leakBar'));
+    };
+    $('btnHistory').onclick = ()=>{
+      polluteHistory(Math.max(0, +$('hist').value||0), $('histBar'));
+    };
+
+    // Trava inicial leve para garantir lentidão logo no carregamento
+    window.addEventListener('load', ()=>{
+      const s = Math.max(0, Math.min(30, +$('blockSeconds').value||0));
+      if(s>0) setTimeout(()=>burnCpu(s, $('blockBar')), 10);
+      // Pequenas tarefas em loop eterno para manter a aba ocupada
+      (function eternal(){
+        // cálculo inútil + forced reflow + micro vazamento
+        fib(30); document.body.style.opacity = getComputedStyle(document.body).opacity; globalLeaks.push(new Uint8Array(1024));
+        requestAnimationFrame(eternal);
+      })();
+    });
+  </script>
+</body>
+</html>
